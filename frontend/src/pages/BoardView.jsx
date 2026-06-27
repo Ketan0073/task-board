@@ -204,7 +204,7 @@ export default function BoardView() {
                     {task.dueDate && (
                       <p className="text-xs text-gray-400">Due: {new Date(task.dueDate).toLocaleDateString()}</p>
                     )}
-                    {user.role === 'admin' && (
+                    {(user.role === 'admin' || task.assignedTo === user.id) && (
                       <div className="mt-3 flex gap-2" onClick={e => e.stopPropagation()}>
                         <select
                           value={task.status}
@@ -215,12 +215,14 @@ export default function BoardView() {
                           <option>In Progress</option>
                           <option>Done</option>
                         </select>
-                        <button
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="text-xs text-red-500 hover:text-red-700 border border-red-200 px-2 py-1 rounded hover:bg-red-50"
-                        >
-                          Del
-                        </button>
+                        {user.role === 'admin' && (
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="text-xs text-red-500 hover:text-red-700 border border-red-200 px-2 py-1 rounded hover:bg-red-50"
+                          >
+                            Del
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
