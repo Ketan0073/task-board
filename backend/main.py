@@ -1,20 +1,23 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.routers import auth, users, boards, tasks
 
 app = FastAPI(title="Task Board API")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", 
-                   "http://127.0.0.1:5173"
-                   "https://task-board-ketan75.vercel.app",
-                   "https://task-board-git-main-ketan75.vercel.app",
-                   "https://task-board-qedf8b5rn-ketan75.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.middleware("http")
+async def cors_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        response = JSONResponse(content={}, status_code=200)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        return response
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 app.include_router(auth.router)
 app.include_router(users.router)
