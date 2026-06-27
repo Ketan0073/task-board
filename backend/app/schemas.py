@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 from datetime import datetime
 
 # --- Auth ---
@@ -16,12 +16,12 @@ class LoginSchema(BaseModel):
 class BoardCreate(BaseModel):
     title: str
     description: Optional[str] = None
-    members: Optional[list[str]] = []
+    members: Optional[List[str]] = []
 
 class BoardUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    members: Optional[list[str]] = None
+    members: Optional[List[str]] = None
 
 # --- Task ---
 class TaskCreate(BaseModel):
