@@ -10,6 +10,8 @@ export default function AdminBoards() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', members: [] })
   const [error, setError] = useState('')
+  const [editingBoard, setEditingBoard] = useState(null)
+  const [editMembers, setEditMembers] = useState([])
 
   const fetchData = async () => {
     const [b, u] = await Promise.all([api.get('/api/boards'), api.get('/api/users')])
@@ -46,6 +48,24 @@ export default function AdminBoards() {
         ? f.members.filter(m => m !== userId)
         : [...f.members, userId]
     }))
+  }
+
+  // --- Edit Members Modal ---
+  const openEditMembers = (board) => {
+    setEditingBoard(board)
+    setEditMembers(board.members || [])
+  }
+
+  const toggleEditMember = (userId) => {
+    setEditMembers(m =>
+      m.includes(userId) ? m.filter(id => id !== userId) : [...m, userId]
+    )
+  }
+
+  const saveMembers = async () => {
+    await api.put(`/api/boards/${editingBoard.id}`, { members: editMembers })
+    setEditingBoard(null)
+    fetchData()
   }
 
   return (
@@ -118,15 +138,63 @@ export default function AdminBoards() {
                   <p className="text-sm text-gray-500">{board.description || 'No description'}</p>
                   <p className="text-xs text-gray-400 mt-1">{board.members?.length || 0} members</p>
                 </div>
-                <button
-                  onClick={() => handleDelete(board.id)}
-                  className="text-red-500 hover:text-red-700 text-sm border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50"
-                >
-                  Delete
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openEditMembers(board)}
+                    className="text-blue-600 hover:text-blue-800 text-sm border border-blue-200 px-3 py-1 rounded-lg hover:bg-blue-50"
+                  >
+                    Edit Members
+                  </button>
+                  <button
+                    onClick={() => handleDelete(board.id)}
+                    className="text-red-500 hover:text-red-700 text-sm border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
             {boards.length === 0 && <p className="text-center text-gray-400 py-10">No boards yet.</p>}
+          </div>
+        )}
+
+        {/* Edit Members Modal */}
+        {editingBoard && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-lg font-bold text-gray-800">Edit Members — {editingBoard.title}</h2>
+                <button onClick={() => setEditingBoard(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+              </div>
+              <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 mb-4">
+                {users.map(u => (
+                  <label key={u.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editMembers.includes(u.id)}
+                      onChange={() => toggleEditMember(u.id)}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{u.name} <span className="text-gray-400">({u.email})</span></span>
+                  </label>
+                ))}
+                {users.length === 0 && <p className="text-sm text-gray-400">No users available.</p>}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={saveMembers}
+                  className="flex-1 bg-blue-700 text-white py-2 rounded-lg hover:bg-blue-800"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => setEditingBoard(null)}
+                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
